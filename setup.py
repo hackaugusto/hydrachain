@@ -1,19 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import codecs
 
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
 from setuptools.command.test import test as TestCommand
+from setuptools import setup
 
 
 class PyTest(TestCommand):
+    def __init__(self, *args, **kwargs):
+        super(PyTest, self).__init__(*args, **kwargs)
+        self.test_suite = True
 
     def finalize_options(self):
         TestCommand.finalize_options(self)
         self.test_args = []
-        self.test_suite = True
 
     def run_tests(self):
         # import here, cause outside the eggs aren't loaded
@@ -22,36 +22,24 @@ class PyTest(TestCommand):
         raise SystemExit(errno)
 
 
-with open('README.md') as readme_file:
-    readme = readme_file.read()
+with codecs.open('README.md', encoding='utf8') as readme_file:
+    LONG_DESCRIPTION = README = readme_file.read()
 
+with open('requirements.txt') as requirements_file:
+    INSTALL_REQUIRES = list(set(
+        requirement.strip()
+        for requirement in requirements_file
+    ))
 
-history = ''
-
-
-install_requires = set(x.strip() for x in open('requirements.txt'))
-install_requires_replacements = {}
-
-install_requires = [install_requires_replacements.get(r, r) for r in install_requires]
-
-test_requirements = [
-    'docker-compose==1.7.0',
-    'bumpversion==0.5.3',
-    'pytest==2.9.1'
-]
-
-
-# *IMPORTANT*: Don't manually change the version here. Use the 'bumpversion' utility.
-# see: https://github.com/ethereum/pyethapp/wiki/Development:-Versions-and-Releases
-version = '0.3.0'
-
+# updated by bumpversion
+VERSION = '0.3.0'
 
 setup(
     name='hydrachain',
-    version=version,
-    description="Permissioned Distributed Ledger based on Ethereum",
-    long_description=readme + '\n\n' + history,
-    author="HeikoHeiko",
+    version=VERSION,
+    description='Permissioned Distributed Ledger based on Ethereum',
+    long_description=LONG_DESCRIPTION,
+    author='HeikoHeiko',
     author_email='heiko@brainbot.com',
     url='https://github.com/HydraChain/hydrachain',
     packages=[
@@ -62,7 +50,7 @@ setup(
         'hydrachain.examples.native.fungible',
     ],
     include_package_data=True,
-    license="MIT",
+    license='MIT',
     zip_safe=False,
     keywords='hydrachain',
     classifiers=[
@@ -74,11 +62,15 @@ setup(
         'Programming Language :: Python :: 2.7',
     ],
     cmdclass={'test': PyTest},
-    install_requires=install_requires,
-    tests_require=test_requirements,
+    install_requires=INSTALL_REQUIRES,
+    tests_require=[
+        'docker-compose==1.7.0',
+        'bumpversion==0.5.3',
+        'pytest==2.9.1'
+    ],
     entry_points={
         'console_scripts': [
-            "hydrachain = hydrachain.app:app"
+            'hydrachain = hydrachain.app:app'
         ]
     }
 )
